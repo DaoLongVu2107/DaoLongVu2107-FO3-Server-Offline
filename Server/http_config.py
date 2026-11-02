@@ -342,14 +342,18 @@ def match_side(raw, teamid, user=None, tactics=None):
     {teamid, squad, players}, side.players (the users: id, name, levelinfo), MatchProxy
     fetchMatchSide* read squad, tactics, ready. tactics is the preset ARRAY (as
     /game/my/tactic/all): native 0x949170 iterates it ({id, bus, cc, def, teammentality})."""
+    # Match kits use five low bits for the type (native fallback: teamid << 5).
+    # Lobby/freeroam resources retain their separate ten-bit encoding.
+    kit = {"availables": {k: {"id": int(teamid) << 5 | t}
+                          for k, t in (("home", 0), ("away", 1), ("goalie", 2))}}
     team = owned_team(raw)
-    team.update(teamid=teamid, summary=team_summary(team, teamid), kit=team_kit(teamid))
+    team.update(teamid=teamid, summary=team_summary(team, teamid), kit=kit)
     # team color for the user's side only: an AI side is a whole club (+4 for free)
     team["teamcolors"] = active_teamcolors(team) if user else []
     # ready: a user side starts unready -- MatchController.sendReady skips the PUT .../ready
     # (no kick-off) when isMySideReady is already true; AI sides are always ready.
     return {"team": team, "squad": team["squad"], "players": [user] if user else [],
-            "tactics": tactics or [default_tactic(0)], "ready": user is None, "kit": team_kit(teamid), "club": {}}
+            "tactics": tactics or [default_tactic(0)], "ready": user is None, "kit": kit, "club": {}}
 
 
 # gamesettings.halfLength, in 1/10 minute per half (the game setting screen shows
@@ -1370,6 +1374,21 @@ def match_step(mid, body, step):
     if not match or match["id"] != mid:
         return _json({"result": False})
     step(match, req)
+    _save(st)
+    return _json({"result": True, "resources": [{"uri": f"/match/{mid}", "body": match}]})
+
+
+
+def ep_match_gamesettings(mid, query, body):
+    """Persist the pre-match shirt selection and return the updated match resource."""
+    req = json.loads(body or b"{}")
+    st = _state()
+    match = st.get("match")
+    side, kit = req.get("side"), req.get("kit")
+    if (not match or match["id"] != mid or match.get("stage") != "setting"
+            or type(side) is not int or side not in (0, 1) or kit not in ("home", "away")):
+        return _json({"result": False})
+    match["gamesettings"]["kit"][side] = kit
     _save(st)
     return _json({"result": True, "resources": [{"uri": f"/match/{mid}", "body": match}]})
 
@@ -2828,6 +2847,7 @@ ROUTES = [
     (re.compile(r"/transfer/purchase/(\d+)/(\d+)/(\d+)/purchase"), ep_transfer_purchase),
     (re.compile(r"/transfer/price/(\d+)/(\d+)"), ep_transfer_price),
     (re.compile(r"/transfer/my/offer/completed/(\w+)(?:/(\w+))?"), ep_offer_collect),
+    (re.compile(r"/match/([0-9a-f]+)/gamesettings"), ep_match_gamesettings),
     (re.compile(r"/match/([0-9a-f]+)/player/ready"), ep_match_player_ready),
     (re.compile(r"/match/([0-9a-f]+)/side/(\w+)/ready"), ep_match_ready),
     (re.compile(r"/match/([0-9a-f]+)/end"), ep_match_end),
