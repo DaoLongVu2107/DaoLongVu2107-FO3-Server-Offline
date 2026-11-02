@@ -1,0 +1,45 @@
+========================================================================
+             HƯỚNG DẪN CÀI ĐẶT & CHƠI FIFA ONLINE 3 OFFLINE
+========================================================================
+
+YÊU CẦU:
+1. Đã có sẵn bộ cài game FIFA Online 3 (có chứa file fifazf.exe).
+2. Máy tính đã cài đặt Python 3 (tải tại https://www.python.org/downloads/
+   lưu ý khi cài nhớ tích vào ô "Add Python to PATH").
+
+------------------------------------------------------------------------
+CÁCH 1: CÀI ĐẶT NHANH NHẤT (Khuyên dùng)
+------------------------------------------------------------------------
+1. Copy hoặc giải nén toàn bộ các file trong thư mục này vào thẳng
+   thư mục game FIFA Online 3 của bạn (nơi có file fifazf.exe).
+
+2. Chuột phải vào file "1_Cai_Dat_Hosts.bat" -> chọn "Run as administrator"
+   (Chỉ cần chạy 1 lần duy nhất).
+
+3. Double-click file "2_Choi_Game_Offline.bat" để chơi game!
+   File này sẽ tự động bật Server và vào game.
+
+------------------------------------------------------------------------
+CÁCH 2: ĐỂ THƯ MỤC PATCH Ở NGOÀI
+------------------------------------------------------------------------
+1. Bạn có thể để thư mục này ở bất kỳ đâu trên máy tính.
+2. Chạy file "1_Cai_Dat_Hosts.bat" bằng quyền Administrator.
+3. Chạy file "2_Choi_Game_Offline.bat". Lần đầu chạy, nó sẽ hỏi bạn đường dẫn
+   đến thư mục game FIFA Online 3 (ví dụ: D:\Games\FO3). Nó sẽ tự động copy
+   launcher và cấu hình giúp bạn.
+
+------------------------------------------------------------------------
+TRANG QUẢN TRỊ ADMIN (EP, CẦU THỦ, PACKS)
+------------------------------------------------------------------------
+Khi server đang chạy, mở trình duyệt vào địa chỉ:
+http://127.0.0.1:8088/
+
+Tại đây bạn có thể:
+- Đặt số dư EP tùy thích
+- Tìm và thêm cầu thủ bất kỳ (+1 đến +10) vào đội
+- Tặng gói thẻ (Pack) vào hòm đồ
+- Nhận quà điểm danh hàng ngày
+
+CHÚC BẠN CHƠI GAME VUI VẺ!
+========================================================================
+
