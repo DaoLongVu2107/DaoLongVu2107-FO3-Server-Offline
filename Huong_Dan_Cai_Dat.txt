@@ -1,32 +1,25 @@
 ========================================================================
              HƯỚNG DẪN CÀI ĐẶT & CHƠI FIFA ONLINE 3 OFFLINE
 ========================================================================
+Donate: 100866809013 DANGQUANGDAT Viettinbank. Xin cảm ơn
 
 YÊU CẦU:
-1. Đã có sẵn bộ cài game FIFA Online 3 (có chứa file fifazf.exe).
+1. Đã có sẵn bộ cài game FIFA Online 3 (có chứa file fifazf.exe)
 2. Máy tính đã cài đặt Python 3 (tải tại https://www.python.org/downloads/
    lưu ý khi cài nhớ tích vào ô "Add Python to PATH").
 
 ------------------------------------------------------------------------
 CÁCH 1: CÀI ĐẶT NHANH NHẤT (Khuyên dùng)
 ------------------------------------------------------------------------
-1. Copy hoặc giải nén toàn bộ các file trong thư mục này vào thẳng
-   thư mục game FIFA Online 3 của bạn (nơi có file fifazf.exe).
+1. Giải nén toàn bộ file ra
 
-2. Chuột phải vào file "1_Cai_Dat_Hosts.bat" -> chọn "Run as administrator"
-   (Chỉ cần chạy 1 lần duy nhất).
+2. Mở \FO3_Offline_Patch\Server\gamedata giải nén tiếp fifadb.rar vào thư mục hiện tại
 
-3. Double-click file "2_Choi_Game_Offline.bat" để chơi game!
-   File này sẽ tự động bật Server và vào game.
+3. Copy toàn bộ các file trong thư mục này vào thẳng thư mục game FIFA Online 3 của bạn (nơi có file fifazf.exe)
 
-------------------------------------------------------------------------
-CÁCH 2: ĐỂ THƯ MỤC PATCH Ở NGOÀI
-------------------------------------------------------------------------
-1. Bạn có thể để thư mục này ở bất kỳ đâu trên máy tính.
-2. Chạy file "1_Cai_Dat_Hosts.bat" bằng quyền Administrator.
-3. Chạy file "2_Choi_Game_Offline.bat". Lần đầu chạy, nó sẽ hỏi bạn đường dẫn
-   đến thư mục game FIFA Online 3 (ví dụ: D:\Games\FO3). Nó sẽ tự động copy
-   launcher và cấu hình giúp bạn.
+3. Chuột phải vào file "1_Cai_Dat_Hosts.bat" -> chọn "Run as administrator" (Chỉ cần chạy 1 lần duy nhất sau đó tự động cài đặt hosts). Có thể lặp lại 1 lần nữa để kiểm tra. 
+
+4. Double-click file "2_Choi_Game_Offline.bat" để chơi game! File này sẽ tự động bật Server và vào game.
 
 ------------------------------------------------------------------------
 TRANG QUẢN TRỊ ADMIN (EP, CẦU THỦ, PACKS)
