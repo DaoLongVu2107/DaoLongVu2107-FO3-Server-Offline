@@ -2639,11 +2639,138 @@ def my_coach(st):
     return next(c for c in st["coaches"] if c["slot"] == _default_slot(st))
 
 
+# Locker Room catalog uses assets present in this client, not shop products.
+LOCKER_SHOE_ASSETS = [0, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 123, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 232, 233, 234, 235, 236, 237, 238, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 13126, 13127, 13128, 13129, 13130, 13131, 13132, 13133, 13134, 13135, 13136, 13137, 13138, 13139, 13140, 13141, 13142, 13143, 13144, 13145, 13146, 13147, 13148, 13149, 13150, 13152, 13153, 13154, 13155, 13156, 13157, 13158, 13159, 13160, 13170, 13171, 13172, 13173, 13174, 13175, 13176, 13177, 13178, 13182, 13183, 13185, 13186, 13188, 13197, 13198, 13199, 13201, 13202, 13203, 13204, 13205, 13207, 13208, 13209, 13210, 13212, 13213, 13214, 13215, 13216, 13217, 13218, 13219, 15000, 15015, 15016, 15017, 15018, 15019, 15020, 15021, 15022, 15023, 15024, 15025, 15026, 15027, 15028, 15029, 15030, 15031, 15032, 15033, 15034, 15035, 15036, 15037, 15038, 15039, 15040, 15041, 15042, 15043, 15044, 15045, 15046, 15047, 15048, 15049, 15050, 15051, 15052, 15053, 15054, 15055, 15056, 15057, 15058, 15059, 15060, 15061, 15062, 15063, 15064, 15065, 15066, 15067, 15068, 15069, 15070, 15071, 15072, 15073, 15074, 15075, 15076, 15077, 15078, 15079, 15080, 15081, 15082, 15083, 15084, 15085, 15086, 15087, 15088, 15089, 15090, 15091, 15092, 15093, 15094, 15095, 15096, 15097, 15098, 15099, 15100, 15101, 15102, 15103, 15104, 15105, 15106, 15107, 15108, 15109, 15110, 15111, 15112, 15113, 15114, 15115, 15116, 15117, 15126, 15127, 15128, 15129, 15130, 15131, 15132, 15133, 15134, 15135, 15136, 15137, 15138, 15139, 15140, 15141, 15142, 15143, 15144, 15145, 15146, 15147, 15148, 15149, 15150, 15151, 15152, 15153, 15154, 15155, 15156, 15157, 15158, 15159, 15160, 15161, 15162, 15164, 15167, 15168, 15169, 15170, 15171, 15172, 15173, 15174, 15175, 15176, 15177, 15178, 15179, 15180, 15181, 15182, 15183, 15184, 15185, 15186, 15187, 15188, 15189, 15190, 15191, 15192, 15193, 15194, 15195, 15196, 15197, 15198, 15199, 15200, 15201, 15202, 15203, 15204, 15205, 15206, 15207, 15208, 15209, 15210, 15211, 15212, 15213, 15215, 15216, 15217, 15218, 15219, 15220, 15221, 15222, 15223, 15224, 15225, 15226, 15227, 15228, 15229, 15230, 15231, 15232, 15233, 15234, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15242, 15243, 15244, 15245, 15246, 15247, 15248, 15249, 15250, 15251, 15252, 15253, 15254, 15255, 16131, 16147, 16148]
+
+
+def locker_catalog():
+    rows = {}
+    def add(key, kind, category, asset, label, option="", colors=None):
+        rows[str(key)] = {"id": str(key), "lockerroomid": str(key), "type": kind,
+                          "category": category, "asset": asset, "label": label,
+                          "itemname": label, "option": option, "order": len(rows),
+                          "visible": True, "slot": [], "color": list(colors or [])}
+    add(1001, "TOP", "UNIFORMKIND", 0, "Ao thuong")
+    add(1002, "TOP", "UNIFORMKIND", 1, "So vin")
+    add(1003, "TOP", "UNIFORMKIND", 1, "Ao om", "FIT")
+    add(1101, "TOP", "UNIFORMARM", 0, "Tay ngan")
+    add(1102, "TOP", "UNIFORMARM", 1, "Tay dai")
+    add(1201, "TOP", "TATTOO", 0, "Mac dinh")
+    add(1301, "TOP", "WRIST", 0, "Khong bang co tay")
+    add(1302, "TOP", "WRIST", 6, "Bang co tay", colors=range(14))
+    add(1401, "TOP", "GLOVE", 0, "Khong gang tay", "PLAYERGLOVE")
+    add(1402, "TOP", "GLOVE", 18, "Gang thu mon", "GKGLOVE", [1])
+    add(2001, "PANTS", "SOCKS", 0, "Tat mac dinh")
+    add(2002, "PANTS", "SOCKS", 1, "Tat dai")
+    add(2003, "PANTS", "SOCKS", 2, "Tat ngan")
+    add(2101, "PANTS", "KNEE", 0, "Khong bang dau goi")
+    add(2102, "PANTS", "KNEE", 10, "Knee pad", colors=range(14))
+    add(2103, "PANTS", "KNEE", 12, "Bang dau goi", colors=range(14))
+    # The client opens ADIDAS initially. A neutral default row initializes the
+    # grid, while actual variants stay in ETC rather than guessing their brand.
+    add(99999, "SHOES", "SHOES", 0, "Mac dinh", "ADIDAS")
+    for order, asset in enumerate(LOCKER_SHOE_ASSETS):
+        add(100000 + asset, "SHOES", "SHOES", asset,
+            "Mac dinh" if asset == 0 else f"Mẫu {order:03d}", "ETC")
+    return rows
+
+
+def ep_locker_jersey(player_id, query, body):
+    """Change the shared shirt/shorts number, swapping an occupied number if needed."""
+    st = _state()
+    slot = _default_slot(st)
+    players = st.get("teams", {}).get(str(slot), {}).get("players", [])
+    player = next((p for p in players if iid(p) == str(player_id)), None)
+    if player is None:
+        return _json({"result": False, "reason": "INVALID_PLAYER"})
+    if not body:
+        return _json({"jersey": player.get("jersey", 0)})
+    try:
+        req = json.loads(body)
+    except (ValueError, TypeError):
+        return _json({"result": False, "reason": "INVALID_JERSEY"})
+    desired = req.get("desired") if isinstance(req, dict) else None
+    if type(desired) is not int or not 1 <= desired <= 99:
+        return _json({"result": False, "reason": "INVALID_JERSEY"})
+    holder = next((p for p in players if p is not player and p.get("jersey") == desired), None)
+    giver = req.get("giverplayerid")
+    if giver is not None and (holder is None or iid(holder) != str(giver)):
+        return _json({"result": False, "reason": "INVALID_GIVER"})
+    if holder is not None:
+        old = player.get("jersey", 0)
+        used = {p.get("jersey") for p in players if p is not player and p is not holder}
+        if type(old) is not int or not 1 <= old <= 99 or old in used:
+            old = next((n for n in range(1, 100) if n != desired and n not in used), None)
+        if old is None:
+            return _json({"result": False, "reason": "NO_FREE_JERSEY"})
+        holder["jersey"] = old
+    player["jersey"] = desired
+    _save(st)
+    return _json({"result": True, "jersey": desired, "resources": coach_me_resources(st, slot)})
+
+
+def ep_locker_itemset(player_id, query, body):
+    """Read/save one owned player's customization; an empty set restores defaults."""
+    st = _state()
+    slot = _default_slot(st)
+    team = st.get("teams", {}).get(str(slot), {})
+    player = next((p for p in team.get("players", []) if iid(p) == str(player_id)), None)
+    if player is None:
+        return _json({"result": False, "reason": "INVALID_PLAYER"})
+    if not body:
+        return _json(player.get("lr", {}))
+    try:
+        req = json.loads(body)
+    except (ValueError, TypeError):
+        return _json({"result": False, "reason": "INVALID_ITEMSET"})
+    selected = req.get("itemset") if isinstance(req, dict) else None
+    if not isinstance(selected, dict):
+        return _json({"result": False, "reason": "INVALID_ITEMSET"})
+    catalog = locker_catalog()
+    normalized = {}
+    categories = set()
+    for key, value in selected.items():
+        row = catalog.get(str(key))
+        if row is None or not isinstance(value, dict) or str(value.get("id")) != str(key):
+            return _json({"result": False, "reason": "INVALID_ITEMSET"})
+        group = (row["category"], row["option"] if row["category"] == "GLOVE" else "")
+        if group in categories:
+            return _json({"result": False, "reason": "INVALID_ITEMSET"})
+        categories.add(group)
+        item = {"id": str(key)}
+        if "pos" in value:
+            if value["pos"] not in ("", "L", "R", "LR"):
+                return _json({"result": False, "reason": "INVALID_ITEMSET"})
+            item["pos"] = value["pos"]
+        if "clr" in value:
+            color = value["clr"]
+            if str(color) != "-1":
+                if str(color) not in {str(n) for n in row["color"]}:
+                    return _json({"result": False, "reason": "INVALID_ITEMSET"})
+                item["clr"] = int(color)
+        normalized[str(key)] = item
+    player["lr"] = normalized
+    _save(st)
+    return _json({"result": True, "resources": coach_me_resources(st, slot)
+                  + [{"uri": f"/lockerroom/{player_id}/itemset", "body": normalized}]})
+
+
+def locker_room_access(slot):
+    """Offline Locker Room access, supplied on every coach refresh without a purchase."""
+    now = int(time.time() * 1000)
+    access_id = f"{0x801000 + int(slot):024x}"
+    return {"_id": access_id, "id": access_id, "itemid": 801,
+            "createat": now - 86400000, "expireat": now + 3650 * 86400000,
+            "remains": 1, "count": 1, "expireable": True, "expired": False,
+            "staticdata": {"itemid": 801, "name": "Locker Room Offline",
+                           "category": "LOCKERROOM", "type": "LOCKERROOM", "itemicon": 801}}
+
+
 def coach_items(st, slot):
     """/coach/me items: one stack per pack ({_id, itemid, remains}); expireable marks an owned
     item (GeneralInventoryTileItemRenderer: Gunakan button instead of Beli)."""
     coach = next(c for c in st["coaches"] if c["slot"] == slot)
-    return [{"_id": i["_id"], "id": i["_id"], "itemid": i["itemid"], "remains": i["remains"], "count": i["remains"],
+    return [locker_room_access(slot)] + [{"_id": i["_id"], "id": i["_id"], "itemid": i["itemid"], "remains": i["remains"], "count": i["remains"],
              "expireable": True, "expired": False, "staticdata": item_def(i["itemid"])}
             for i in coach.get("items", []) if i["itemid"] in PACKS or i["itemid"] in ITEMS]
 
@@ -2857,6 +2984,8 @@ def ep_bag_unpackall(query, body):
 
 # Path-pattern routes (ids in the path); checked after the exact ENDPOINTS.
 ROUTES = [
+    (re.compile(r"/lockerroom/(\w+)/itemset"), ep_locker_itemset),
+    (re.compile(r"/lockerroom/(\w+)/jersey"), ep_locker_jersey),
     (re.compile(r"/item/(\w+)/use"), ep_item_use),
     (re.compile(r"/bag/(\w+)/unpack"), ep_bag_unpack),
     (re.compile(r"/coach/(\w+)/postponed"), ep_coach_postponed),
@@ -2933,6 +3062,7 @@ ENDPOINTS.update({
     "/trade3/notification": lambda q, b: _json({"result": True}),
     "/static/db/PLAYERTRADE": lambda q, b: _json({"playergrade": {str(s): trade_grades(s) for s in range(2, 101)}}),
     "/static/db/EXPPLAYER": lambda q, b: _json(EXPPLAYER), "/static/db/EXPCOACH": lambda q, b: _json(EXPCOACH),
+    "/static/db/LOCKERROOMITEM": lambda q, b: _json(locker_catalog()),
     "/static/db/STATICVALUES/max_coachlevel": lambda q, b: _json(COACH_MAX_LEVEL),
     "/static/info/teamcolor": ep_teamcolor,
     "/shop/list": lambda q, b: _json(shop_list(_state())), "/shop/list/STSHOP": ep_stshop,
