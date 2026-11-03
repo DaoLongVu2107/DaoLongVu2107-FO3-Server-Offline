@@ -275,25 +275,49 @@ POS_SUB = 28  # Enums.PLAYERPOSITION: 0..27 pitch positions, 28 SUB, 29.. RESERV
 SOUND_DEFAULTS = {"Master": 10, "Commentary": 10, "PAVolume": 10, "PlayerCalls": 10, "SFX": 10, "Crowd": 10, "BGM": 10}
 
 
+# Complete client-native keyboard/pad layouts. Missing controlOption makes
+# OptionManager.applyControlSetting return before assigning the controller.
+CONTROL_DEFAULTS = {'Controller': 0, 'Type': 0, 'JoyAttType1': [4, 3, 2, 1, 5, 7, 6, 8], 'JoyDefType1': [4, 3, 2, 1, 5, 7, 6, 8], 'JoyMovType1': [9, 11, 10], 'JoyAttType2': [4, 2, 3, 1, 5, 6, 8, 7], 'JoyDefType2': [4, 2, 3, 1, 5, 6, 8, 7], 'JoyMovType2': [9, 11, 10], 'JoyAttType3': [4, 3, 2, 1, 5, 7, 6, 8], 'JoyDefType3': [4, 3, 2, 1, 5, 7, 6, 8], 'JoyMovType3': [11, 9, 10], 'KeyAttType1': [87, 65, 68, 83, 81, 90, 67, 69], 'KeyDefType1': [87, 65, 68, 83, 81, 90, 67, 69], 'KeyMovType1': [38, 40, 37, 39, 256, 257, 258], 'KeyAttType2': [87, 65, 68, 83, 81, 90, 67, 69], 'KeyDefType2': [87, 65, 83, 81, 68, 90, 67, 69], 'KeyMovType2': [38, 40, 37, 39, 256, 257, 258], 'KeyAttType3': [69, 65, 68, 83, 81, 90, 67, 87], 'KeyDefType3': [69, 65, 68, 83, 81, 90, 67, 87], 'KeyMovType3': [38, 40, 37, 39, 256, 257, 258], 'KeyAttType4': [80, 75, 186, 76, 73, 190, 191, 79], 'KeyDefType4': [80, 75, 186, 76, 73, 190, 191, 79], 'KeyMovType4': [87, 83, 65, 68, 256, 257, 258], 'KeyDefType5': [87, 65, 68, 32, 81, 90, 67, 69], 'KeyDefType6': [87, 65, 83, 32, 68, 90, 67, 69], 'KeyDefType7': [69, 65, 68, 32, 81, 90, 67, 87], 'KeyDefType8': [80, 75, 186, 32, 73, 190, 191, 79], 'KeyAttType5': [87, 65, 68, 83, 81, 90, 67, 69], 'KeyAttType6': [87, 65, 68, 83, 81, 90, 67, 69], 'KeyAttType7': [69, 65, 68, 83, 81, 90, 67, 87], 'KeyAttType8': [80, 75, 186, 76, 73, 190, 191, 79], 'KeyMovType5': [38, 40, 37, 39, 256, 257, 258], 'KeyMovType6': [38, 40, 37, 39, 256, 257, 258], 'KeyMovType7': [38, 40, 37, 39, 256, 257, 258], 'KeyMovType8': [87, 83, 65, 68, 256, 257, 258]}
+
+
+def control_options(saved=None):
+    """Complete partial profiles; never hand native input an empty key map."""
+    saved = saved if isinstance(saved, dict) else {}
+    out = {}
+    for key, default in CONTROL_DEFAULTS.items():
+        value = saved.get(key)
+        if isinstance(default, list):
+            valid = (isinstance(value, list) and len(value) == len(default)
+                     and all(type(n) is int and 0 <= n <= 65535 for n in value))
+            out[key] = list(value if valid else default)
+    controller = saved.get("Controller", 0)
+    out["Controller"] = controller if type(controller) is int and controller in (0, 1) else 0
+    layout = saved.get("Type", 0)
+    count = 8 if out["Controller"] == 0 else 3
+    out["Type"] = layout if type(layout) is int and 0 <= layout < count else 0
+    return out
+
+
 def ep_account(query, body):
     """GET /account (AccountProxy.accountData): responses/account_base.json, with the options
     the client saved through PUT /account/option layered over `option`."""
     with open(os.path.join(RESPONSES, "account_base.json"), encoding="utf-8") as f:
         acc = json.load(f)
     acc["option"].update(_state().get("option", {}))
+    acc["option"]["controlOption"] = control_options(acc["option"].get("controlOption"))
     acc["option"]["soundOption"] = {**SOUND_DEFAULTS, **(acc["option"].get("soundOption") or {})}
     return _json(acc)
 
 
 def ep_account_option(query, body):
-    """PUT /account/option {soundOption, screenOption, chatHotKeyOption, aiOption, cameraOption}
-    (sent e.g. when leaving a match). Never store controlOption: {} there crashes the input
-    thread (see account_base.json)."""
+    """Save complete control profiles and return the option resource expected by the UI."""
     req = json.loads(body or b"{}")
     st = _state()
-    st["option"] = {k: v for k, v in req.items() if k.endswith("Option") and k != "controlOption"}
+    options = st.setdefault("option", {})
+    options.update({k: v for k, v in req.items() if k.endswith("Option") and isinstance(v, dict)})
+    options["controlOption"] = control_options(options.get("controlOption"))
     _save(st)
-    return _json({"result": True})
+    return _json({"result": True, "resources": [{"uri": "/account/option", "body": options}]})
 
 
 def ep_coach_squad(query, body):
