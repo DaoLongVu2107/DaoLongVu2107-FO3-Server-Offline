@@ -1,0 +1,2 @@
+c541617c6d26614bc393eb1b6372a1a8d53666d9654249764ac5965f5bc8e1e5  Server/http_config.py
+106b37dbc45d4cae5bfae9d562fb554169798f4c0975533d7b593ad402091c48  Server/responses/game_inweburl_notice.json

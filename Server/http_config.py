@@ -332,7 +332,9 @@ def ep_coach_squad(query, body):
                  for p in sq.get("positions") or [] if str(p.get("id")) in spid_of and p.get("pos", 99) <= POS_SUB]
     # a client still holding old instance ids (e.g. from before a card migration) must not
     # wipe the XI: keep the stored squad unless the new one has 11 known starters
-    if sum(p["pos"] < POS_SUB for p in positions) == 11:
+    if (sum(p["pos"] < POS_SUB for p in positions) == 11
+            and len({p["id"] for p in positions}) == len(positions)
+            and len({p["pos"] for p in positions if p["pos"] < POS_SUB}) == 11):
         team["squad"]["positions"] = positions
         for k in ("formation", "workrate"):
             if k in sq:
@@ -748,7 +750,7 @@ def tc_colors():
             "description": "Pemain dari klub yang sama", "boostgroups": TC_CLUB_GROUPS}
     nation = {"teamcolorid": TC_NATION, "type": "nation", "teamid": -1, "name": f"TEAMCOLOR_ATTRIBUTES_TEAM{TC_NATION}",
               "description": "Pemain dari negara yang sama", "boostgroups": TC_GROUPS}
-    return [club, nation] + [{"teamcolorid": TC_SEASON + codes[0], "type": "special", "teamid": TC_SEASON + codes[0],
+    return [club, nation] + [{"teamcolorid": TC_SEASON + codes[0], "type": "special", "teamid": str(TC_SEASON + codes[0]),
                               "name": f"Season {label}", "description": f"Pemain season {label}", "boostgroups": TC_GROUPS}
                              for label, codes in tc_seasons()]
 
@@ -799,14 +801,68 @@ def active_teamcolors(team):
         groups = TC_CLUB_GROUPS if cid == TC_CLUB else TC_GROUPS
         i = next((i for i, g in enumerate(groups) if g["count_min"] <= n <= g["count_max"]), None)
         if i is not None and teamid > 0:
-            out.append({"teamcolorid": cid, "boostindex": i, "teamid": teamid})
+            out.append({"teamcolorid": cid, "boostindex": i, "teamid": str(teamid) if cid >= TC_SEASON else teamid})
     return out
+
+
+def repair_squad(team):
+    """Restore missing starters and keep all squad references on owned instances."""
+    sq = team["squad"]
+    cards = {iid(p): p for p in team["players"]}
+    used, slots, positions = set(), set(), []
+    for entry in sq.get("positions", []):
+        pid = str(entry.get("id") or entry.get("spid"))
+        pos = entry.get("pos", POS_SUB)
+        if pid not in cards or pid in used or not 0 <= pos <= POS_SUB:
+            continue
+        if pos < POS_SUB and (pos in slots or len(slots) >= 11):
+            continue
+        positions.append(dict(entry, id=pid, spid=cards[pid]["spid"]))
+        used.add(pid)
+        if pos < POS_SUB:
+            slots.add(pos)
+    # Preserve every valid starter. Fill vacancies from the existing bench/reserves.
+    starters = [p for p in positions if p["pos"] < POS_SUB]
+    starting_ids = {p["id"] for p in starters}
+    for pos, x, y in gen_teams.FORMATION:
+        if len(starters) >= 11:
+            break
+        if pos in slots:
+            continue
+        candidates = [p for pid, p in cards.items() if pid not in starting_ids and not p.get("team2")]
+        if not candidates:
+            break
+        chosen = max(candidates, key=player_ovr)
+        pid = iid(chosen)
+        starters.append({"id": pid, "spid": chosen["spid"], "pos": pos,
+                         "starting": [1, 1, x, y]})
+        slots.add(pos)
+        starting_ids.add(pid)
+    bench = [p for p in positions if p["pos"] == POS_SUB and p["id"] not in starting_ids][:7]
+    selected = starting_ids | {p["id"] for p in bench}
+    for p in sorted(cards.values(), key=player_ovr, reverse=True):
+        if len(bench) >= 7:
+            break
+        if iid(p) not in selected and not p.get("team2"):
+            bench.append({"id": iid(p), "spid": p["spid"], "pos": POS_SUB})
+            selected.add(iid(p))
+    sq["positions"] = starters + bench
+    if str(sq.get("captain")) not in starting_ids:
+        sq["captain"] = next((p["id"] for p in starters if p["pos"] != 0), "")
+    else:
+        sq["captain"] = str(sq["captain"])
+    fallback = [p["id"] for p in starters if p["pos"] != 0]
+    kickers = sq.get("kickers", [])
+    sq["kickers"] = [str(kickers[i]) if i < len(kickers) and str(kickers[i]) in starting_ids
+                     else (fallback[i % len(fallback)] if fallback else "") for i in range(5)]
 
 
 def owned_team(raw):
     """A stored team ({players:[{spid,...}], squad:{positions,captain,kickers,...}}) in the
     shape the client expects for a club it can show and play with (coach.team, match side.team)."""
-    team = dict(raw)
+    import copy
+    team = copy.deepcopy(raw)
+    repair_squad(team)
     # An owned club refers to player *instances*: PlayerListUtil.getBestEleven maps
     # squad.positions[].id -> players[]._id (spid alone gives an empty XI -> null -> the
     # MenuScreen constructor throws = black FREEROAM).
@@ -1403,6 +1459,47 @@ def match_step(mid, body, step):
 
 
 
+def ep_match_squad(mid, side, query, body):
+    """Save the user's pre-match XI; instance ids are authoritative after a swap."""
+    import copy
+    st = _state()
+    match = st.get("match")
+    if not match or match.get("id") != mid or match.get("stage") not in ("created", "squad", "setting"):
+        return _json({"result": False})
+    current = match.get("side", {}).get(side)
+    if not current or not current.get("players"):
+        return _json({"result": False})
+    req = json.loads(body or b"{}")
+    sq = req.get("squad") or {}
+    cards = {iid(p): p for p in current["team"]["players"]}
+    positions = []
+    for entry in sq.get("positions") or []:
+        pid, pos = str(entry.get("id")), entry.get("pos")
+        if pid not in cards or type(pos) is not int or not 0 <= pos <= POS_SUB:
+            return _json({"result": False})
+        positions.append({**entry, "id": pid, "spid": cards[pid]["spid"]})
+    starters = [p for p in positions if p["pos"] < POS_SUB]
+    if (len(starters) != 11 or len({p["pos"] for p in starters}) != 11
+            or len({p["id"] for p in positions}) != len(positions)
+            or len(positions) > 18 or not any(p["pos"] == 0 for p in starters)):
+        return _json({"result": False})
+    team = copy.deepcopy(current["team"])
+    team["squad"].update({k: sq[k] for k in ("formation", "workrate") if k in sq})
+    team["squad"]["positions"] = positions
+    for key in ("captain", "kickers"):
+        if key in req or key in sq:
+            team["squad"][key] = req.get(key, sq.get(key))
+    repair_squad(team)
+    team["captain"] = team["squad"]["captain"]
+    team["kickers"] = team["squad"]["kickers"]
+    team["teamcolors"] = active_teamcolors(team)
+    team["summary"] = team_summary(team, team["teamid"])
+    current["team"] = team
+    current["squad"] = team["squad"]
+    _save(st)
+    return _json({"result": True, "resources": [{"uri": f"/match/{mid}", "body": match}]})
+
+
 def ep_match_gamesettings(mid, query, body):
     """Persist the pre-match shirt selection and return the updated match resource."""
     req = json.loads(body or b"{}")
@@ -1860,6 +1957,7 @@ def remove_player(team, p):
     sq, pid = team["squad"], iid(p)
     sq["positions"] = [s for s in sq["positions"] if str(s.get("id") or s["spid"]) != pid]
     sq["kickers"] = [k for k in sq.get("kickers", []) if str(k) != pid]
+    repair_squad(team)
     if str(sq.get("captain")) == pid:
         sq["captain"] = next((str(s.get("id") or s["spid"]) for s in sq["positions"] if s["pos"]), "")
 
@@ -3001,6 +3099,7 @@ ROUTES = [
     (re.compile(r"/transfer/price/(\d+)/(\d+)"), ep_transfer_price),
     (re.compile(r"/transfer/my/offer/completed/(\w+)(?:/(\w+))?"), ep_offer_collect),
     (re.compile(r"/match/([0-9a-f]+)/gamesettings"), ep_match_gamesettings),
+    (re.compile(r"/match/([0-9a-f]+)/side/(left|right)/squad"), ep_match_squad),
     (re.compile(r"/match/([0-9a-f]+)/player/ready"), ep_match_player_ready),
     (re.compile(r"/match/([0-9a-f]+)/side/(\w+)/ready"), ep_match_ready),
     (re.compile(r"/match/([0-9a-f]+)/end"), ep_match_end),
