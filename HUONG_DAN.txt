@@ -1,14 +1,10 @@
-﻿BẢN SỬA FO3 OFFLINE — 03/11/2026
+﻿BẢN CẬP NHẬT FO3 OFFLINE — 04/11/2026 - 11h20
 
 CÀI ĐẶT
-1. Sao lưu Server/http_config.py và Server/responses/game_inweburl_notice.json
-   nếu tệp thứ hai đã tồn tại. Phòng trường hợp lỗi.
 
-2. Giải nén ZIP vào thư mục game có fifazf.exe, chọn ghi đè.
-   Thư mục Server trong ZIP phải trùng với thư mục Server của game.
+1. Giải nén ZIP vào thư mục gốc game có fifazf.exe, chọn ghi đè.
+   
+4. Chạy file số 2 như trước, khởi động lại cả server và game.
 
-3. Chạy lại 2_Choi_Game_Offline.bat và bắt đầu chiến thôi nào.
-
-THAY ĐỔI
-- Fix lỗi thay đổi cầu thủ
-- Fix lỗi crash game
+NỘI DUNG:
+- Thêm mua EXP cầu thủ, EXP HLV vào shop

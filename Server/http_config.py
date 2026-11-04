@@ -2597,6 +2597,24 @@ ITEMS = {  # itemid: (name, icon, type, effect, description)
     3002: ("Ganti nama manager", 3002, "COACHNAME_CHANGE", {}, "Ganti nama manager Anda."),
     3001: ("Ganti tim", 3001, "TEAM_CHANGE", {}, "Pindah ke klub lain (logo, seragam, liga); pemain tetap."),
 }
+# Player EXP capsules use the client's native player selection screen.
+ITEMS.update({
+    910001: ('Player EXP +1,000', 300, 'PLAYER_EXP_CAPSULE', {'exp': 1000},
+             'Add 1,000 EXP to one owned player. Maximum level: 23.'),
+    910002: ('Player EXP +5,000', 300, 'PLAYER_EXP_CAPSULE', {'exp': 5000},
+             'Add 5,000 EXP to one owned player. Maximum level: 23.'),
+    910003: ('Player EXP +30,000', 300, 'PLAYER_EXP_CAPSULE', {'exp': 30000},
+             'Add 30,000 EXP to one owned player. Maximum level: 23.'),
+})
+# Additional consumables supported by the native inventory screens.
+ITEMS.update({
+    910004: ('Player EXP +2,000', 300, 'PLAYER_EXP_CAPSULE', {'exp': 2000}, 'Add 2,000 player EXP. Maximum level: 23.'),
+    910005: ('Player EXP +10,000', 300, 'PLAYER_EXP_CAPSULE', {'exp': 10000}, 'Add 10,000 player EXP. Maximum level: 23.'),
+    910006: ('Player EXP +20,000', 300, 'PLAYER_EXP_CAPSULE', {'exp': 20000}, 'Add 20,000 player EXP. Maximum level: 23.'),
+    911001: ('Coach EXP +1,000', 200, 'COACH_EXP_CAPSULE', {'exp': 1000}, 'Add 1,000 manager EXP. Maximum level: 100.'),
+    911002: ('Coach EXP +5,000', 200, 'COACH_EXP_CAPSULE', {'exp': 5000}, 'Add 5,000 manager EXP. Maximum level: 100.'),
+    911003: ('Coach EXP +30,000', 200, 'COACH_EXP_CAPSULE', {'exp': 30000}, 'Add 30,000 manager EXP. Maximum level: 100.'),
+})
 PACKAGES = {  # itemid: (name, icon, [(itemid, count)], description); bought = contents to Item saya
     801: ("Paket Starter", 801, [(28006, 1), (28007, 1), (28008, 1), (28009, 1), (50020, 2)],
           "Pak FW/MF/DF/GK 60+ dan 2x EP +500.000."),
@@ -2615,6 +2633,12 @@ PACKAGES.update({  # Serial product steps (CHAINED below), bought in order
     70000001: ("Paket Berantai 1/3", 200130000, [(501, 3), (28007, 1)], "Tahap 1: 3x Lucky EP dan pak MF 60+."),
     70000002: ("Paket Berantai 2/3", 200130001, [(50122, 1), (50021, 1)], "Tahap 2: Kotak Emas dan EP +1.000.000."),
     70000003: ("Paket Berantai 3/3", "ID50121GP", [(50121, 1), (8334, 1)], "Tahap 3: Kotak Platinum dan World Best 5."),
+})
+PACKAGES.update({
+    912001: ('Player EXP Bundle', 300, [(910001, 5), (910002, 3), (910003, 1)],
+             '5x Player EXP +1,000, 3x +5,000 and 1x +30,000.'),
+    912002: ('Coach EXP Bundle', 200, [(911001, 5), (911002, 3), (911003, 1)],
+             '5x Coach EXP +1,000, 3x +5,000 and 1x +30,000.'),
 })
 MP_SHOP = (501, 50123, 50122, 45013, 45006, 3002)  # MP Shop (shopcategory MILEAGE) copies
 MP_SHOPID = 900_000_000  # MP Shop entries: shopid = MP_SHOPID + itemid (productid stays itemid)
@@ -2644,6 +2668,8 @@ def use_item_def(itemid):
     name, icon, typ, eff, desc = ITEMS[itemid]
     return {"itemid": itemid, "productid": itemid, "name": name, "category": "USE", "type": typ, "unit": "COUNT",
             "itemicon": icon, "bundleicon": icon, "currency": "ep", "stackable": True, "description": desc,
+            **({'capsuleexp': eff['exp'], 'capsuleseason': None, 'capsulelv': None}
+               if typ == 'PLAYER_EXP_CAPSULE' else {}),
             # TeamManagementEPCardScreen.onQuery sizes the coin counter from count.max
             **({"count": {"min": eff["ep"][0], "max": eff["ep"][1]}} if "ep" in eff else {}),
             "bunches": [{"bunch": n, "price": 0} for n in PACK_BUNCHES]}
@@ -2922,7 +2948,28 @@ def use_item(st, slot, coach, it, req):
     """/item/<_id>/use for a USE item (see ITEMS): its effect, one used up."""
     _, _, typ, eff, _ = ITEMS[it["itemid"]]
     out = {"result": True}
-    if typ == "EP_LOTTERY":  # lower amounts more likely
+    consume = 1
+    if typ == 'COACH_EXP_CAPSULE':
+        count = req.get('count', 1)
+        if type(count) is not int or count < 1 or count > it['remains']:
+            return {'result': False, 'reason': 'ITEM_USE_ERROR'}
+        if coach_levelinfo(coach)['level'] >= COACH_MAX_LEVEL:
+            return {'result': False, 'reason': 'ITEM_USE_ERROR'}
+        # Stop at max level without spending additional unused capsules.
+        consume = 0
+        while consume < count and coach_levelinfo(coach)['level'] < COACH_MAX_LEVEL:
+            gain_exp(coach, eff['exp'], coach_need, COACH_MAX_LEVEL)
+            consume += 1
+        out['exp'] = eff['exp'] * consume
+    elif typ == 'PLAYER_EXP_CAPSULE':
+        targetid = req.get('targetid')
+        player = next((p for p in st['teams'][str(slot)]['players']
+                       if isinstance(targetid, str) and iid(p) == targetid), None)
+        if player is None or player_levelinfo(player)['level'] >= PLAYER_MAX_LEVEL:
+            return {'result': False, 'reason': 'ITEM_USE_ERROR'}
+        before, after = gain_exp(player, eff['exp'], player_need, PLAYER_MAX_LEVEL)
+        out.update({'targetid': iid(player), 'before': before, 'after': after})
+    elif typ == "EP_LOTTERY":  # lower amounts more likely
         lo, hi = eff["ep"]
         out["ep"] = lo if lo == hi else max(lo, round(random.triangular(lo, hi, lo), -4))
         add_ep(st, out["ep"])
@@ -2944,7 +2991,7 @@ def use_item(st, slot, coach, it, req):
         if not roster(teamid)["team"]["players"]:
             return {"result": False, "reason": "ITEM_USE_ERROR"}
         coach["teamid"] = teamid
-    it["remains"] -= 1
+    it["remains"] -= consume
     if not it["remains"]:
         coach["items"].remove(it)
     return out
