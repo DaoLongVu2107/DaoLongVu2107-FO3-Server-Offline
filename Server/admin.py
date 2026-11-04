@@ -296,6 +296,9 @@ class Admin(http.server.BaseHTTPRequestHandler):
         if self.client_address[0] not in ("127.0.0.1", "::1") or host not in ("127.0.0.1", "localhost", "[::1]"):
             return self._send(403, b"forbidden", "text/plain")
         url = urllib.parse.urlparse(self.path)
+        if url.path == "/notice.html":
+            with open(os.path.join(HERE, "admin", "notice.html"), "rb") as f:
+                return self._send(200, f.read(), "text/html; charset=utf-8")
         if url.path in ("/", "/index.html"):
             with open(PAGE, "rb") as f:
                 return self._send(200, f.read(), "text/html; charset=utf-8")

@@ -193,7 +193,15 @@ def ep_coaches(query, body):
         _save(st)
     def entry(c):
         me = coach_me(st, c["slot"])
-        return dict(c, summary=me["summary"], teamvalue={"val": sum(p["price"] for p in me["team"]["players"])},
+        team = me["team"]
+        starters = {p["id"] for p in team["squad"]["positions"] if 0 < p["pos"] < POS_SUB}
+        candidates = [p for p in team["players"] if p["id"] in starters]
+        front = next((p for p in candidates if p["id"] == team["captain"]),
+                     max(candidates, key=player_ovr) if candidates else None)
+        # UpdateCoaches reads frontplayer.kit.home/goalie.id, not kit.availables.
+        preview = ({"frontplayer": dict(front, kit=team_kit(c["teamid"])["availables"],
+                                        lr=front.get("lr") or {})} if front else {})
+        return dict(c, **preview, summary=me["summary"], teamvalue={"val": sum(p["price"] for p in me["team"]["players"])},
                     levelinfo=me["levelinfo"],
                     recoveryperiod=COACH_RECOVERY, **({"hideat": w3c(c["deleteat"])} if "deleteat" in c else {}))
     usable = {c["_id"] for c in st["coaches"] if c.get("state", "active") == "active"}
@@ -889,9 +897,15 @@ def owned_team(raw):
     sq["captain"] = str(sq["captain"]) if sq.get("captain") else ""
     sq["kickers"] = [str(k) for k in sq.get("kickers", [])]
     team["squad"] = sq
-    team.update({"staffs": [], "staffroles": [], "staffroleidx": 0, "maxstaff": 0, "staffsmc": {}})
+    team.update({"staffs": team.get("staffs", []),
+                 "staffroles": team.get("staffroles") or [
+                     {"roleidx": 1, "slotidx": i, "open": True, "staffid": None}
+                     for i in range(1, 8)],
+                 "staffroleidx": team.get("staffroleidx") or 1,
+                 "maxstaff": team.get("maxstaff") or 30, "staffsmc": team.get("staffsmc") or 0})
     # PlayerListUtil.generateCaptainFromCoachInfo (Tim > Formasi) reads these at team level
     team.update({"captain": sq["captain"], "kickers": sq["kickers"], "presetidx": 0})
+    staff_service.normalize_team(team)
     team.setdefault("formations", [])
     return team
 
@@ -3216,7 +3230,13 @@ class H(http.server.BaseHTTPRequestHandler):
         else:
             try:
                 with STATE_LOCK:
-                    ctype, data = from_file(path) or (ENDPOINTS.get(path) or route(path) or fallback)(query, body)
+                    if path in browser_links.URLS:
+                        if self.client_address[0] not in ("127.0.0.1", "::1"):
+                            ctype, data = _json({"result": False})
+                        else:
+                            ctype, data = _json({"result": browser_links.open_link(path)})
+                    else:
+                        ctype, data = from_file(path) or (ENDPOINTS.get(path) or route(path) or fallback)(query, body)
             except Exception:
                 # an empty reply is a curl error and the client quits (CLIENT_CLOSE); answer
                 # something parseable and keep the traceback in the log instead
@@ -3236,6 +3256,11 @@ class H(http.server.BaseHTTPRequestHandler):
 
     def log_message(self, *a):
         pass  # we do our own logging
+
+
+import browser_links
+import staff_service
+staff_service.install(sys.modules[__name__])
 
 
 if __name__ == "__main__":
