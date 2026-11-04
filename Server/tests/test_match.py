@@ -41,7 +41,7 @@ class MatchLogTest(Sandbox):
     def test_cup_match_end_is_logged_and_rewarded(self):
         st = self.new_career()
         ep0 = self.hc.coach_me(st, 0)["money"]["ep"]
-        cup = J(self.hc.ep_cup_new("", json.dumps({"metaid": 1, "difficulty": 2}).encode()))
+        cup = J(self.hc.ep_cup_new("", json.dumps({"metaid": 1, "difficulty": 1}).encode()))
         cupid = cup["resources"][0]["body"]["_id"]
         res = J(self.hc.ep_cup_match(cupid, "", b""))
         self.assertTrue(res["result"], res)
@@ -53,7 +53,7 @@ class MatchLogTest(Sandbox):
         out = J(self.hc.route(f"/match/{mid}/end")("", end_body(me, opp, 2, 1, possession={"home": 55, "away": 45})))
         self.assertTrue(out["result"])
         rec = self.lines()[-1]
-        self.assertEqual((rec["match"], rec["type"], rec["difficulty"]), (mid, "Cup_PvE", 2))
+        self.assertEqual((rec["match"], rec["type"], rec["difficulty"]), (mid, "Cup_PvE", 1))
         self.assertEqual(rec["stats"]["possession"]["home"], 55)
         st = self.hc._state()
         self.assertGreater(self.hc.coach_me(st, 0)["money"]["ep"], ep0)  # the original handler still ran

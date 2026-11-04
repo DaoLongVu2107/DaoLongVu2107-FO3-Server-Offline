@@ -238,15 +238,16 @@ Kích thước: S ≈ 0,5 · M ≈ 1 · L ≈ 2–3 · XL ≈ 4–5 phiên làm 
 - [x] 0.8 Launcher: kiểm tra Python, cổng 443, script gỡ hosts — S *(code xong, chờ test trong game)*
 - [x] 0.9 Phát hiện giờ máy bị lùi — S
 
-### M1 – Kinh tế cốt lõi (~5 phiên · 1 lượt test)
-- [ ] 1.1 Tắt shop miễn phí, giá shop thật, EP khởi đầu 50k — S
-- [ ] 1.2 Gỡ/sửa các gói "in tiền" — S
-- [ ] 1.3 Thưởng trận theo độ khó AI + thưởng bàn thắng — M
-- [ ] 1.4 Giới hạn trận mô phỏng — S
-- [ ] 1.5 Mở khóa theo cấp HLV — M
-- [ ] 1.6 Đặc quyền VIP theo cấp — S
-- [ ] 1.7 Trận 6 phút/hiệp + thử 5 lượt thay / 7 dự bị 🎮 — S
-- [ ] 1.8 Công cụ mô phỏng kinh tế (bản đầu) — M
+### M1 – Kinh tế cốt lõi (~5 phiên · 1 lượt test) — nhánh `m1-kinh-te`, xem [M1_KIEM_TRA.md](M1_KIEM_TRA.md)
+- [x] 1.1 Tắt shop miễn phí, giá shop thật, EP khởi đầu 50k — S
+- [x] 1.2 Gỡ/sửa các gói "in tiền" — S
+- [x] 1.3 Thưởng trận theo độ khó AI + thưởng bàn thắng — M
+- [x] 1.4 Giới hạn trận mô phỏng — S
+- [x] 1.5 Mở khóa theo cấp HLV — M
+- [x] 1.6 Đặc quyền VIP theo cấp — S
+- [x] 1.7 Trận 6 phút/hiệp + thử 5 lượt thay / 7 dự bị 🎮 — S *(code xong, chờ test trong game)*
+- [x] 1.8 Công cụ mô phỏng kinh tế (bản đầu) — M
+- [x] 1.9 *(thêm)* Vá lỗ hổng: chặn mua thẳng sản phẩm đã gỡ, thời gian chờ Scout, save v2 giữ EP cũ — S
 
 ### M2 – Định giá thẻ và gói thẻ (~5 phiên · 1 lượt test)
 - [ ] 2.1 Đưa dữ liệu fifaaddict vào repo — S

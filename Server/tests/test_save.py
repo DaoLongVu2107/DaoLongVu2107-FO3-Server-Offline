@@ -8,7 +8,7 @@ class SaveTest(Sandbox):
     def test_migrate_v0(self):
         from career import save
         st = {"coaches": [], "defaultcoachid": "", "teams": {}}
-        self.assertEqual(save.migrate(st), [1])
+        self.assertEqual(save.migrate(st), [1, 2])
         self.assertEqual(st["version"], save.CURRENT_VERSION)
         self.assertIn("upgraded_from_v0", st["meta"])
         self.assertEqual(save.migrate(st), [])  # already current

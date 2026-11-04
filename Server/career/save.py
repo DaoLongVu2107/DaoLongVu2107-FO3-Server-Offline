@@ -18,7 +18,7 @@ import shutil
 import sys
 import time
 
-CURRENT_VERSION = 1
+CURRENT_VERSION = 2
 PREFIX, SUFFIX = "state_", ".json"
 
 hc = None
@@ -29,7 +29,14 @@ def _m0_to_1(st):
     st.setdefault("meta", {})["upgraded_from_v0"] = int(time.time())
 
 
-MIGRATIONS = {0: _m0_to_1}
+def _m1_to_2(st):
+    """v1 -> v2 (M1 economy): managers whose EP was never stored relied on the old 1,000,000
+    default; store it so the new 50,000 start EP only applies to new managers."""
+    for c in st.get("coaches", []):
+        c.setdefault("ep", 1_000_000)
+
+
+MIGRATIONS = {0: _m0_to_1, 1: _m1_to_2}
 
 
 def install(module):
