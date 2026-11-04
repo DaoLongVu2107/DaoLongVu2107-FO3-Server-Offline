@@ -222,3 +222,108 @@ Mỗi mốc một nhánh riêng; gộp vào `main` sau khi test trong game.
 6. 5 lượt thay người / 7 dự bị.
 7. Team color cho bot; huy hiệu HLV; Cup 32 đội; cúp lồng trong League.
 8. Ghi toàn bộ dữ liệu `matchStats` để mở thêm loại nhiệm vụ.
+
+## 6. Đầu việc và tiến độ
+
+Kích thước: S ≈ 0,5 · M ≈ 1 · L ≈ 2–3 · XL ≈ 4–5 phiên làm việc. 🎮 = cần test trong game.
+
+### M0 – Nền móng (~5 phiên · 1 lượt test)
+- [ ] 0.1 Tách module mới (`config.py`, `economy.py`…), không phá code gốc — M
+- [ ] 0.2 `gamedata/config.json` + bộ đọc cấu hình có giá trị mặc định — S
+- [ ] 0.3 Đánh số phiên bản save + khung nâng cấp save — M
+- [ ] 0.4 Tự sao lưu save mỗi lần mở (giữ 10 bản) + khôi phục — S
+- [ ] 0.5 Chế độ DEV (`FO3_DEV=1`) + khóa cheat trên trang admin — S
+- [ ] 0.6 Bộ test tự động (HLV giả, trận giả, giả lập thời gian) — M
+- [ ] 0.7 Ghi toàn bộ `matchStats` sau trận 🎮 — S
+- [ ] 0.8 Launcher: kiểm tra Python, cổng 443, script gỡ hosts — S
+- [ ] 0.9 Phát hiện giờ máy bị lùi — S
+
+### M1 – Kinh tế cốt lõi (~5 phiên · 1 lượt test)
+- [ ] 1.1 Tắt shop miễn phí, giá shop thật, EP khởi đầu 50k — S
+- [ ] 1.2 Gỡ/sửa các gói "in tiền" — S
+- [ ] 1.3 Thưởng trận theo độ khó AI + thưởng bàn thắng — M
+- [ ] 1.4 Giới hạn trận mô phỏng — S
+- [ ] 1.5 Mở khóa theo cấp HLV — M
+- [ ] 1.6 Đặc quyền VIP theo cấp — S
+- [ ] 1.7 Trận 6 phút/hiệp + thử 5 lượt thay / 7 dự bị 🎮 — S
+- [ ] 1.8 Công cụ mô phỏng kinh tế (bản đầu) — M
+
+### M2 – Định giá thẻ và gói thẻ (~5 phiên · 1 lượt test)
+- [ ] 2.1 Đưa dữ liệu fifaaddict vào repo — S
+- [ ] 2.2 `market_price`: OVR × mùa × ngôi sao × meta (có nén) — M
+- [ ] 2.3 Bảng hệ số mùa + bậc mùa — S
+- [ ] 2.4 Gói theo mùa "Mùa X" / "Top 50" / "Top 10" — M
+- [ ] 2.5 Bỏ giới hạn bản quyền server ID trong gói — S
+- [ ] 2.6 Xếp gói cũ vào bậc, shop theo cấp mở khóa — M
+- [ ] 2.7 Kiểm tra shop và mở gói trong game 🎮 — S
+
+### M3 – Thế giới và mùa giải (~11 phiên · 2–3 lượt test)
+- [ ] 3.1 `world.json`: đội hình 501 CLB — M
+- [ ] 3.2 Đội bot lấy từ `world.json` 🎮 — M
+- [ ] 3.3 Kim tự tháp giải đấu — M
+- [ ] 3.4 Bắt đầu ở hạng thấp nhất 🎮 — M
+- [ ] 3.5 Thử League 20 đội / 38 vòng 🎮 — M
+- [ ] 3.6 Lên/xuống hạng giữa các hạng thật — M
+- [ ] 3.7 Mô phỏng các giải khác song song — M
+- [ ] 3.8 Tổng kết mùa, chuyển mùa mới — L
+- [ ] 3.9 Mục tiêu ban lãnh đạo — M
+
+### M4 – Kỳ chuyển nhượng, chợ và bot (~12 phiên · 2–3 lượt test)
+- [ ] 4.1 Lịch kỳ chuyển nhượng theo giờ thật — S
+- [ ] 4.2 Giá chợ động — M
+- [ ] 4.3 Sổ lệnh (mua giữ EP, bán, hủy, hết hạn) — L
+- [ ] 4.4 Phiên khớp lệnh mỗi 2 giờ + tính bù — M
+- [ ] 4.5 Gắn vào màn hình chợ của game 🎮 — M
+- [ ] 4.6 Cầu thủ đang rao bán vẫn trong đội hình 🎮 — S
+- [ ] 4.7 Bot CLB mua bán (ngân sách, nhu cầu, tính cách) — L
+- [ ] 4.8 Bot hỏi mua cầu thủ của bạn — M
+- [ ] 4.9 Phong độ ngẫu nhiên theo loại thẻ 🎮 — M
+- [ ] 4.10 Phát triển vĩnh viễn cho thẻ trẻ — S
+
+### M5 – Cúp (~9 phiên · 2–3 lượt test)
+- [ ] 5.1 Mở rộng chế độ Cup, chỉ hiện cúp đủ điều kiện — M
+- [ ] 5.2 Cúp quốc gia — M
+- [ ] 5.3 C1 / C2 / C3 + suất dự theo mùa trước — L
+- [ ] 5.4 Siêu cúp quốc gia, Siêu cúp châu Âu 🎮 — S
+- [ ] 5.5 Cúp Nam Mỹ / châu Á + Cúp thế giới các CLB — M
+- [ ] 5.6 Tiền thưởng theo vòng — S
+- [ ] 5.7 Thử C1 32 đội 🎮 — M
+
+### M6 – Nhiệm vụ, thành tích, rơi đồ (~12 phiên · 2 lượt test)
+- [ ] 6.1 Bộ máy nhiệm vụ — L
+- [ ] 6.2 Kho ~80 mẫu + nhịp tuần — M
+- [ ] 6.3 Nhiệm vụ tuần / tháng / chuỗi — M
+- [ ] 6.4 Nhiệm vụ tồn + chuỗi đăng nhập không đứt — S
+- [ ] 6.5 Thành tích 150+ + Shop Thành tích — L
+- [ ] 6.6 Rơi đồ + bảo hiểm — S
+- [ ] 6.7 Giờ vàng, giải cuối tuần — M
+- [ ] 6.8 Tủ danh hiệu, Đại sảnh danh vọng, nhà tài trợ — M
+- [ ] 6.9 Huy hiệu HLV 🎮 — S
+
+### M7 – Sự kiện và sưu tầm (~9 phiên · 2 lượt test)
+- [ ] 7.1 Lịch lễ dương + âm — S
+- [ ] 7.2 Bộ máy sự kiện (xu, shop, quà, nhân thưởng) — L
+- [ ] 7.3 ~10 sự kiện ngày lễ — M
+- [ ] 7.4 Sự kiện ngẫu nhiên + cầu thủ của tuần — S
+- [ ] 7.5 Album sưu tập — M
+- [ ] 7.6 Team color đặc biệt + cho bot 🎮 — M
+- [ ] 7.7 Vòng quay + đổi 5 thẻ lấy 1 gói — M
+
+### M8 – Sổ tay HLV và Việt hóa (~6 phiên · 1 lượt test)
+- [ ] 8.1 Khung Sổ tay HLV — M
+- [ ] 8.2 Bảng xếp hạng, nhánh cúp, sổ lệnh, biểu đồ giá, bản tin — L
+- [ ] 8.3 Nhiệm vụ, Album, team color + gợi ý, sao lưu, cài đặt — M
+- [ ] 8.4 Việt hóa chữ do server gửi 🎮 — M
+
+### M9 – Đội tuyển quốc gia (~7 phiên · 3–5 lượt test)
+- [ ] 9.1 Tìm hiểu màn World Cup của game qua log 🎮 — L
+- [ ] 9.2 Đội tuyển ghép theo quốc tịch — M
+- [ ] 9.3 World Cup / EURO / Copa América theo chu kỳ — L
+- [ ] 9.4 Dự phòng: dạng Cup thường — S
+
+### M10 – Cân bằng và bản 1.0 (~5 phiên · chơi thật)
+- [ ] 10.1 Mô phỏng 300 giờ, chỉnh số — M
+- [ ] 10.2 Sửa lỗi khi chơi thật — L
+- [ ] 10.3 CHANGELOG, ZIP cập nhật, hướng dẫn — S
+
+**Tổng:** ~86 phiên code · ~17–22 lượt test · ~3–4 tháng (khoảng 2 lượt test/tuần).
