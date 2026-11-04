@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+
+# Du lieu nguoi choi (save, sao luu, cau hinh rieng) - khong dua len repo
+Server/gamedata/state.json
+Server/gamedata/state.json.tmp
+Server/gamedata/backups/
+Server/gamedata/clock.json
+Server/gamedata/config.json
+
+# Giai nen tu fifadb.rar
+Server/gamedata/fifadb.sqlite
+
+# Log khi chay
+launcher_log.txt
+preflight.txt
+Server/captures/match_stats.jsonl

@@ -227,16 +227,16 @@ Mỗi mốc một nhánh riêng; gộp vào `main` sau khi test trong game.
 
 Kích thước: S ≈ 0,5 · M ≈ 1 · L ≈ 2–3 · XL ≈ 4–5 phiên làm việc. 🎮 = cần test trong game.
 
-### M0 – Nền móng (~5 phiên · 1 lượt test)
-- [ ] 0.1 Tách module mới (`config.py`, `economy.py`…), không phá code gốc — M
-- [ ] 0.2 `gamedata/config.json` + bộ đọc cấu hình có giá trị mặc định — S
-- [ ] 0.3 Đánh số phiên bản save + khung nâng cấp save — M
-- [ ] 0.4 Tự sao lưu save mỗi lần mở (giữ 10 bản) + khôi phục — S
-- [ ] 0.5 Chế độ DEV (`FO3_DEV=1`) + khóa cheat trên trang admin — S
-- [ ] 0.6 Bộ test tự động (HLV giả, trận giả, giả lập thời gian) — M
-- [ ] 0.7 Ghi toàn bộ `matchStats` sau trận 🎮 — S
-- [ ] 0.8 Launcher: kiểm tra Python, cổng 443, script gỡ hosts — S
-- [ ] 0.9 Phát hiện giờ máy bị lùi — S
+### M0 – Nền móng (~5 phiên · 1 lượt test) — nhánh `m0-nen-mong`, xem [M0_KIEM_TRA.md](M0_KIEM_TRA.md)
+- [x] 0.1 Tách module mới (`config.py`, `economy.py`…), không phá code gốc — M
+- [x] 0.2 `gamedata/config.json` + bộ đọc cấu hình có giá trị mặc định — S
+- [x] 0.3 Đánh số phiên bản save + khung nâng cấp save — M
+- [x] 0.4 Tự sao lưu save mỗi lần mở (giữ 10 bản) + khôi phục — S
+- [x] 0.5 Chế độ DEV (`FO3_DEV=1`) + khóa cheat trên trang admin — S
+- [x] 0.6 Bộ test tự động (HLV giả, trận giả, giả lập thời gian) — M
+- [x] 0.7 Ghi toàn bộ `matchStats` sau trận 🎮 — S *(code xong, chờ test trong game)*
+- [x] 0.8 Launcher: kiểm tra Python, cổng 443, script gỡ hosts — S *(code xong, chờ test trong game)*
+- [x] 0.9 Phát hiện giờ máy bị lùi — S
 
 ### M1 – Kinh tế cốt lõi (~5 phiên · 1 lượt test)
 - [ ] 1.1 Tắt shop miễn phí, giá shop thật, EP khởi đầu 50k — S

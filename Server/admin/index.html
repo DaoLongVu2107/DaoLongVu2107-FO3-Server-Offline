@@ -87,11 +87,17 @@
     .wallet { margin-left: 0; }
   }
   @media (prefers-reduced-motion: no-preference) { nav button { transition: background .12s, color .12s; } }
+  /* Che do Su nghiep: cheat tools are locked unless the server runs with FO3_DEV=1 */
+  .badge.dev { background: var(--danger); }
+  .career-note { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--gold); background: var(--panel); color: var(--mute); }
+  body.locked main .b:not(#logRefresh):not(#searchForm button):not([data-team]),
+  body.locked main select[data-grade] { opacity: .4; pointer-events: none; }
 </style>
 </head>
 <body>
 <header class="hud">
   <h1>FIFA Online 3 Admin</h1>
+  <span class="badge dev" id="devBadge" hidden>CHẾ ĐỘ DEV</span>
   <span class="who"><span id="coachName">…</span><span class="badge pc">PC</span><span class="badge vip">VIP</span></span>
   <span class="muted" id="serverTime"></span>
   <div class="wallet" aria-label="EP Balance"><span class="coin" aria-hidden="true"></span><strong id="epTop">…</strong><small>EP</small></div>
@@ -397,6 +403,14 @@ packsReady = api("packs").then(j => {
   $("#packSel").innerHTML = packOpts();
   $("#bagPack").innerHTML = '<option value="">No pack</option>' + packOpts();
 }).catch(e => say("Failed to load packs list: " + e.message, "err"));
+api("mode").then(m => {
+  $("#devBadge").hidden = !m.dev;
+  document.body.classList.toggle("locked", !m.dev);
+  if (!m.dev) $("#status").insertAdjacentHTML("beforebegin",
+    '<p class="career-note">Chế độ Sự nghiệp: các công cụ chỉnh EP, cầu thủ, gói và quà đã bị khóa. ' +
+    'Chạy <b>3_Choi_Che_Do_DEV.bat</b> nếu cần bật lại để test.</p>');
+  if (m.clock && m.clock.rolled_back) say("Giờ máy đang sớm hơn lần chạy trước: quà theo giờ thật tạm dừng.", "err");
+}).catch(() => {});
 show("ringkasan");
 </script>
 </body>

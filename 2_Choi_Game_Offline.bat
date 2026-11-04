@@ -13,6 +13,7 @@ echo ====================================================
 echo        FIFA ONLINE 3 - OFFLINE SERVER
 echo ====================================================
 echo  Log file: %LOG%
+if "%FO3_DEV%"=="1" echo  *** CHE DO DEV: cong cu cheat tren trang admin dang BAT ***
 echo ====================================================
 echo.
 
@@ -98,6 +99,18 @@ cd /d "%PATCH_DIR%\Server"
 echo CD: %cd% >> "%LOG%"
 
 powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'start_all\.py|http_config\.py|messenger\.py' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >> "%LOG%" 2>&1
+
+rem 4b. Kiem tra truoc khi chay: phien ban Python, cong 443 / 8088 / 28002
+echo [*] Kiem tra truoc khi chay...
+ping 127.0.0.1 -n 2 >nul
+python -I "%PATCH_DIR%\Server\career\preflight.py" > "%PATCH_DIR%\preflight.txt" 2>&1
+set "PRE_ERR=!errorLevel!"
+type "%PATCH_DIR%\preflight.txt"
+type "%PATCH_DIR%\preflight.txt" >> "%LOG%"
+if "!PRE_ERR!"=="2" (
+    echo [LOI] Kiem tra truoc khi chay that bai, xem cac dong [LOI] o tren.
+    goto END_ERROR
+)
 
 start "FO3 Offline Server" python start_all.py
 echo [OK] Server da khoi dong >> "%LOG%"

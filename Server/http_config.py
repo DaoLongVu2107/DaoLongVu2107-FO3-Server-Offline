@@ -3308,9 +3308,12 @@ class H(http.server.BaseHTTPRequestHandler):
 import browser_links
 import staff_service
 staff_service.install(sys.modules[__name__])
+import career  # Che do Su nghiep: everything new lives in Server/career/
+career.install(sys.modules[__name__])
 
 
 if __name__ == "__main__":
+    career.startup(sys.modules[__name__])  # config, save backup/upgrade, clock check
     # Windows SO_REUSEADDR lets a second copy bind the same port and split the client's
     # requests between two servers; refuse instead (a second play.bat then just fails)
     http.server.ThreadingHTTPServer.allow_reuse_address = os.name != "nt"
